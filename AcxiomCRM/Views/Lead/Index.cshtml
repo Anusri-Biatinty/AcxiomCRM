@@ -1,0 +1,128 @@
+@model IEnumerable<Lead>
+@{ ViewData["Title"] = "Leads"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="text-primary fw-bold mb-0"><i class="fas fa-filter me-2"></i>Leads</h4>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i>New Lead
+    </a>
+</div>
+
+<div class="card shadow-sm border-0 mb-3">
+    <div class="card-body py-2">
+        <form asp-action="Index" method="get" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <input type="text" name="search" class="form-control form-control-sm"
+                       placeholder="Name / Email / Company" value="@ViewBag.Search" />
+            </div>
+            <div class="col-md-2">
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">All Status</option>
+                    @foreach (var s in new[]{"New","Contacted","Qualified","Unqualified","Converted","Lost"})
+                    {
+                        <option value="@s" selected="@(ViewBag.Status == s)">@s</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="priority" class="form-select form-select-sm">
+                    <option value="">All Priority</option>
+                    <option value="High"   selected="@(ViewBag.Priority == "High")">High</option>
+                    <option value="Medium" selected="@(ViewBag.Priority == "Medium")">Medium</option>
+                    <option value="Low"    selected="@(ViewBag.Priority == "Low")">Low</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-sm btn-primary">
+                    <i class="fas fa-search me-1"></i>Filter
+                </button>
+                <a asp-action="Index" class="btn btn-sm btn-outline-secondary ms-1">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Source</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Expected Value</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var l in Model)
+                    {
+                        <tr>
+                            <td><span class="badge bg-light text-dark border">@l.LeadCode</span></td>
+                            <td class="fw-semibold">@l.LeadName</td>
+                            <td>@l.Email</td>
+                            <td>@l.Source</td>
+                            <td>
+                                @{
+                                    var statusClass = l.Status switch {
+                                        "New"       => "bg-primary",
+                                        "Contacted" => "bg-info",
+                                        "Qualified" => "bg-success",
+                                        "Unqualified" => "bg-secondary",
+                                        "Converted" => "bg-dark",
+                                        "Lost"      => "bg-danger",
+                                        _           => "bg-secondary"
+                                    };
+                                }
+                                <span class="badge @statusClass">@l.Status</span>
+                            </td>
+                            <td>
+                                @{
+                                    var priorityClass = l.Priority == "High" ? "bg-danger"
+                                        : l.Priority == "Medium" ? "bg-warning" : "bg-success";
+                                }
+                                <span class="badge @priorityClass">@l.Priority</span>
+                            </td>
+                            <td>₹@l.ExpectedValue.ToString("N0")</td>
+                            <td class="text-end">
+                                <a asp-action="Details" asp-route-id="@l.LeadId"
+                                   class="btn btn-sm btn-outline-info me-1" title="Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@l.LeadId"
+                                   class="btn btn-sm btn-outline-warning me-1" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                @if (l.Status == "Qualified")
+                                {
+                                    <form asp-action="Convert" asp-route-id="@l.LeadId"
+                                          method="post" class="d-inline"
+                                          onsubmit="return confirm('Convert @l.LeadName to customer?')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-success" title="Convert">
+                                            <i class="fas fa-exchange-alt"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-5">
+                                <i class="fas fa-filter fa-2x mb-2 d-block opacity-25"></i>
+                                No leads found.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer text-muted small bg-white">Showing @Model.Count() record(s)</div>
+</div>

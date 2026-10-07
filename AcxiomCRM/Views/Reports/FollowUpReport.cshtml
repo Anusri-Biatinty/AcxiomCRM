@@ -1,0 +1,87 @@
+@model IEnumerable<FollowUp>
+@{ ViewData["Title"] = "Follow-Up Report"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="text-primary fw-bold mb-0"><i class="fas fa-calendar me-2"></i>Follow-Up Report</h4>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Reports</a>
+</div>
+
+<div class="card shadow-sm border-0 mb-3">
+    <div class="card-body py-2">
+        <form asp-action="FollowUpReport" method="get" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">All Status</option>
+                    @foreach (var s in new[]{"Planned","Completed","Missed","Cancelled"})
+                    { <option value="@s" selected="@(ViewBag.Status==s)">@s</option> }
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-sm btn-primary"><i class="fas fa-filter me-1"></i>Filter</button>
+                <a asp-action="FollowUpReport" class="btn btn-sm btn-outline-secondary ms-1">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if ((int)(ViewBag.OverdueCount ?? 0) > 0)
+{
+    <div class="alert alert-warning mb-3">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>@ViewBag.OverdueCount overdue follow-up(s)</strong> are still in Planned status.
+    </div>
+}
+
+<div class="row g-2 mb-3">
+    @foreach (var s in new[]{("Planned","bg-primary"),("Completed","bg-success"),("Missed","bg-danger"),("Cancelled","bg-secondary")})
+    {
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center py-2">
+                <div class="fw-bold fs-5"><span class="badge @s.Item2">@Model.Count(f=>f.Status==s.Item1)</span></div>
+                <div class="small text-muted">@s.Item1</div>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Subject</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Customer</th>
+                        <th>Lead</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var f in Model)
+                    {
+                        var isOverdue = f.Status == "Planned" && f.FollowUpDate < DateTime.Today;
+                        <tr class="@(isOverdue?"table-warning":"")">
+                            <td class="@(isOverdue?"text-danger fw-bold":"")">@f.FollowUpDate.ToString("dd MMM yyyy")</td>
+                            <td>@f.Subject</td>
+                            <td>@f.FollowUpType</td>
+                            <td>
+                                @{var sc=f.Status switch{"Completed"=>"bg-success","Missed"=>"bg-danger","Cancelled"=>"bg-secondary",_=>"bg-primary"};}
+                                <span class="badge @sc">@f.Status</span>
+                            </td>
+                            <td class="small">@f.Customer?.CustomerName</td>
+                            <td class="small">@f.Lead?.LeadName</td>
+                            <td class="small text-muted">@f.Remarks</td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="7" class="text-center text-muted py-4">No follow-ups found.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

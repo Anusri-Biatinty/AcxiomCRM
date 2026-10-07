@@ -1,0 +1,209 @@
+@model DashboardViewModel
+@{ ViewData["Title"] = "Dashboard"; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-primary fw-bold mb-0"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h4>
+    <span class="text-muted small">Welcome, <strong>@User.Identity!.Name</strong></span>
+</div>
+
+<!-- ── KPI Cards ── -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card bg-primary text-white h-100 shadow-sm border-0">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fs-3 fw-bold">@Model.TotalCustomers</div>
+                    <div class="small opacity-75">Total Customers</div>
+                </div>
+                <i class="fas fa-users fa-2x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card bg-warning text-white h-100 shadow-sm border-0">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fs-3 fw-bold">@Model.TotalLeads</div>
+                    <div class="small opacity-75">Total Leads</div>
+                </div>
+                <i class="fas fa-filter fa-2x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card bg-success text-white h-100 shadow-sm border-0">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fs-3 fw-bold">@Model.OpenLeads</div>
+                    <div class="small opacity-75">Open Leads</div>
+                </div>
+                <i class="fas fa-funnel-dollar fa-2x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card bg-info text-white h-100 shadow-sm border-0">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fs-3 fw-bold">@Model.TotalOpportunities</div>
+                    <div class="small opacity-75">Total Opportunities</div>
+                </div>
+                <i class="fas fa-handshake fa-2x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm h-100" style="background:#6f42c1;color:white">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fs-3 fw-bold">@Model.OpenOpportunities</div>
+                    <div class="small opacity-75">Open Opportunities</div>
+                </div>
+                <i class="fas fa-door-open fa-2x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card bg-success text-white h-100 shadow-sm border-0">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fs-3 fw-bold">@Model.WonOpportunities</div>
+                    <div class="small opacity-75">Won Opportunities</div>
+                </div>
+                <i class="fas fa-trophy fa-2x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card bg-danger text-white h-100 shadow-sm border-0">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fs-3 fw-bold">@Model.LostOpportunities</div>
+                    <div class="small opacity-75">Lost Opportunities</div>
+                </div>
+                <i class="fas fa-times-circle fa-2x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card bg-dark text-white h-100 shadow-sm border-0">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fs-3 fw-bold">₹@Model.TotalPipelineValue.ToString("N0")</div>
+                    <div class="small opacity-75">Pipeline Value</div>
+                </div>
+                <i class="fas fa-rupee-sign fa-2x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Follow-Up Alerts ── -->
+@if (Model.OverdueFollowUps > 0)
+{
+    <div class="alert alert-warning d-flex align-items-center shadow-sm mb-4">
+        <i class="fas fa-exclamation-triangle me-3 fs-5"></i>
+        <div>
+            <strong>@Model.OverdueFollowUps overdue follow-up(s)</strong> require your attention.
+            <a asp-controller="FollowUp" asp-action="Index" asp-route-status="Planned"
+               class="alert-link ms-2">View now →</a>
+        </div>
+    </div>
+}
+
+<!-- ── Charts ── -->
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white border-0 fw-semibold text-primary">
+                <i class="fas fa-chart-pie me-2"></i>Lead Status
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <canvas id="leadChart" style="max-height:250px"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white border-0 fw-semibold text-primary">
+                <i class="fas fa-chart-bar me-2"></i>Opportunity Pipeline
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <canvas id="pipelineChart" style="max-height:250px"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white border-0 fw-semibold text-primary">
+                <i class="fas fa-chart-line me-2"></i>Monthly Sales (Won)
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <canvas id="salesChart" style="max-height:250px"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const COLORS = ['#0d6efd','#ffc107','#198754','#dc3545','#6c757d','#0dcaf0','#6f42c1','#fd7e14'];
+
+    // Lead Status — Doughnut
+    const leadData = @Html.Raw(Model.LeadStatusJson);
+    new Chart(document.getElementById('leadChart'), {
+        type: 'doughnut',
+        data: {
+            labels: leadData.labels,
+            datasets: [{ data: leadData.data, backgroundColor: COLORS, borderWidth: 2 }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom', labels: { padding: 10, font: { size: 11 } } } }
+        }
+    });
+
+    // Pipeline — Bar
+    const pipeData = @Html.Raw(Model.PipelineJson);
+    new Chart(document.getElementById('pipelineChart'), {
+        type: 'bar',
+        data: {
+            labels: pipeData.labels,
+            datasets: [{
+                label: 'Amount (₹)',
+                data: pipeData.data,
+                backgroundColor: COLORS,
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { callback: v => '₹' + v.toLocaleString() } } }
+        }
+    });
+
+    // Monthly Sales — Line
+    const salesData = @Html.Raw(Model.MonthlySalesJson);
+    new Chart(document.getElementById('salesChart'), {
+        type: 'line',
+        data: {
+            labels: salesData.labels,
+            datasets: [{
+                label: 'Won Amount (₹)',
+                data: salesData.data,
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13,110,253,0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+</script>
+}

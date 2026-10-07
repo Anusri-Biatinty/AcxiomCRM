@@ -1,0 +1,117 @@
+@model IEnumerable<Opportunity>
+@{ ViewData["Title"] = "Opportunities"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="text-primary fw-bold mb-0"><i class="fas fa-handshake me-2"></i>Opportunities</h4>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i>New Opportunity
+    </a>
+</div>
+
+<div class="card shadow-sm border-0 mb-3">
+    <div class="card-body py-2">
+        <form asp-action="Index" method="get" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <input type="text" name="search" class="form-control form-control-sm"
+                       placeholder="Opportunity / Customer name" value="@ViewBag.Search" />
+            </div>
+            <div class="col-md-3">
+                <select name="stage" class="form-select form-select-sm">
+                    <option value="">All Stages</option>
+                    @foreach (var s in new[]{"Qualification","Proposal","Negotiation","Won","Lost"})
+                    {
+                        <option value="@s" selected="@(ViewBag.Stage == s)">@s</option>
+                    }
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-sm btn-primary">
+                    <i class="fas fa-search me-1"></i>Filter
+                </button>
+                <a asp-action="Index" class="btn btn-sm btn-outline-secondary ms-1">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Customer</th>
+                        <th>Stage</th>
+                        <th>Amount</th>
+                        <th>Probability</th>
+                        <th>Weighted</th>
+                        <th>Close Date</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var o in Model)
+                    {
+                        var isOverdue = o.ExpectedCloseDate < DateTime.Today
+                            && o.Stage != "Won" && o.Stage != "Lost";
+                        <tr class="@(isOverdue ? "table-warning" : "")">
+                            <td class="fw-semibold">@o.OpportunityName</td>
+                            <td>@o.Customer?.CustomerName</td>
+                            <td>
+                                @{
+                                    var sc = o.Stage switch {
+                                        "Won"  => "bg-success", "Lost" => "bg-danger",
+                                        "Negotiation" => "bg-warning",
+                                        "Proposal" => "bg-info", _ => "bg-primary"
+                                    };
+                                }
+                                <span class="badge @sc">@o.Stage</span>
+                            </td>
+                            <td>₹@o.Amount.ToString("N0")</td>
+                            <td>@o.Probability%</td>
+                            <td class="text-muted">₹@o.WeightedAmount.ToString("N0")</td>
+                            <td class="@(isOverdue ? "text-danger fw-bold" : "")">
+                                @o.ExpectedCloseDate.ToString("dd MMM yyyy")
+                                @if (isOverdue) { <i class="fas fa-exclamation-circle ms-1"></i> }
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="Details" asp-route-id="@o.OpportunityId"
+                                   class="btn btn-sm btn-outline-info me-1">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@o.OpportunityId"
+                                   class="btn btn-sm btn-outline-warning me-1">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                                {
+                                    <form asp-action="Delete" asp-route-id="@o.OpportunityId"
+                                          method="post" class="d-inline"
+                                          onsubmit="return confirm('Delete this opportunity?')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-5">
+                                <i class="fas fa-handshake fa-2x mb-2 d-block opacity-25"></i>
+                                No opportunities found.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer text-muted small bg-white">
+        Showing @Model.Count() | Total Pipeline: ₹@Model.Where(o => o.Stage != "Won" && o.Stage != "Lost").Sum(o => o.Amount).ToString("N0")
+    </div>
+</div>

@@ -1,0 +1,87 @@
+@model CustomerViewModel
+@{ ViewData["Title"] = "New Customer"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="text-primary fw-bold mb-0"><i class="fas fa-user-plus me-2"></i>New Customer</h4>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-arrow-left me-1"></i>Back to List
+    </a>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <form asp-action="Create" method="post" novalidate>
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"
+                 style="@(ViewData.ModelState.IsValid ? "display:none" : "")"></div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="CustomerName" class="form-label fw-semibold small"></label>
+                    <input asp-for="CustomerName" class="form-control"
+                           placeholder="Customer full name" />
+                    <span asp-validation-for="CustomerName" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="CompanyName" class="form-label fw-semibold small"></label>
+                    <input asp-for="CompanyName" class="form-control"
+                           placeholder="Company or organisation" />
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Email" class="form-label fw-semibold small"></label>
+                    <input asp-for="Email" class="form-control"
+                           placeholder="user@example.com" type="email" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Phone" class="form-label fw-semibold small"></label>
+                    <input asp-for="Phone" class="form-control"
+                           placeholder="10-digit mobile number" maxlength="10"
+                           pattern="[6-9][0-9]{9}" />
+                    <span asp-validation-for="Phone" class="text-danger small"></span>
+                </div>
+                <div class="col-md-8">
+                    <label asp-for="Address" class="form-label fw-semibold small"></label>
+                    <input asp-for="Address" class="form-control" placeholder="Street address" />
+                </div>
+                <div class="col-md-2">
+                    <label asp-for="City" class="form-label fw-semibold small"></label>
+                    <input asp-for="City" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                    <label asp-for="State" class="form-label fw-semibold small"></label>
+                    <input asp-for="State" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Status" class="form-label fw-semibold small"></label>
+                    <select asp-for="Status" class="form-select">
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+                @if (Model.SalesUsers.Any())
+                {
+                    <div class="col-md-6">
+                        <label asp-for="AssignedTo" class="form-label fw-semibold small"></label>
+                        <select asp-for="AssignedTo" asp-items="Model.SalesUsers"
+                                class="form-select">
+                            <option value="">-- Assign to Sales Executive --</option>
+                        </select>
+                    </div>
+                }
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="fas fa-save me-1"></i>Save Customer
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

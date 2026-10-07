@@ -1,0 +1,105 @@
+@model Lead
+@{ ViewData["Title"] = "Lead Details"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="text-primary fw-bold mb-0">
+        <i class="fas fa-user me-2"></i>@Model.LeadName
+        <span class="badge bg-light text-dark border ms-2 fs-6">@Model.LeadCode</span>
+    </h4>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.LeadId" class="btn btn-warning btn-sm">
+            <i class="fas fa-edit me-1"></i>Edit
+        </a>
+        @if (Model.Status == "Qualified")
+        {
+            <form asp-action="Convert" asp-route-id="@Model.LeadId" method="post"
+                  onsubmit="return confirm('Convert to customer?')">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-success btn-sm">
+                    <i class="fas fa-exchange-alt me-1"></i>Convert to Customer
+                </button>
+            </form>
+        }
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i>Back
+        </a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white fw-semibold">
+                <i class="fas fa-info-circle me-2"></i>Lead Information
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless mb-0">
+                    <tr><td class="fw-semibold text-muted small" width="40%">Name</td><td>@Model.LeadName</td></tr>
+                    <tr><td class="fw-semibold text-muted small">Company</td><td>@Model.CompanyName</td></tr>
+                    <tr><td class="fw-semibold text-muted small">Email</td><td><a href="mailto:@Model.Email">@Model.Email</a></td></tr>
+                    <tr><td class="fw-semibold text-muted small">Phone</td><td>@Model.Phone</td></tr>
+                    <tr><td class="fw-semibold text-muted small">Source</td><td>@Model.Source</td></tr>
+                    <tr>
+                        <td class="fw-semibold text-muted small">Status</td>
+                        <td>
+                            @{
+                                var sc = Model.Status switch {
+                                    "New" => "bg-primary", "Contacted" => "bg-info",
+                                    "Qualified" => "bg-success", "Converted" => "bg-dark",
+                                    "Lost" => "bg-danger", _ => "bg-secondary"
+                                };
+                            }
+                            <span class="badge @sc">@Model.Status</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="fw-semibold text-muted small">Priority</td>
+                        <td>
+                            @{
+                                var pc = Model.Priority == "High" ? "bg-danger"
+                                    : Model.Priority == "Medium" ? "bg-warning" : "bg-success";
+                            }
+                            <span class="badge @pc">@Model.Priority</span>
+                        </td>
+                    </tr>
+                    <tr><td class="fw-semibold text-muted small">Expected Value</td>
+                        <td class="fw-bold text-success">₹@Model.ExpectedValue.ToString("N0")</td></tr>
+                    <tr><td class="fw-semibold text-muted small">Created</td>
+                        <td>@Model.CreatedDate.ToString("dd MMM yyyy")</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-info text-white fw-semibold">
+                <i class="fas fa-calendar me-2"></i>Follow-Ups (@Model.FollowUps.Count)
+            </div>
+            <div class="card-body p-0">
+                @if (Model.FollowUps.Any())
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var f in Model.FollowUps.OrderByDescending(x => x.FollowUpDate).Take(5))
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="small fw-semibold">@f.Subject</div>
+                                    <div class="text-muted" style="font-size:0.75rem">
+                                        @f.FollowUpType · @f.FollowUpDate.ToString("dd MMM yyyy")
+                                    </div>
+                                </div>
+                                <span class="badge @(f.Status=="Completed"?"bg-success":f.Status=="Missed"?"bg-danger":"bg-primary")">
+                                    @f.Status
+                                </span>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4 small">No follow-ups yet.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

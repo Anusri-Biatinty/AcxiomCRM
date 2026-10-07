@@ -1,0 +1,132 @@
+@model OpportunityViewModel
+@{ ViewData["Title"] = "New Opportunity"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="text-primary fw-bold mb-0"><i class="fas fa-handshake me-2"></i>New Opportunity</h4>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-arrow-left me-1"></i>Back
+    </a>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <form asp-action="Create" method="post" id="oppForm" novalidate>
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"
+                 style="@(ViewData.ModelState.IsValid ? "display:none" : "")"></div>
+
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label asp-for="OpportunityName" class="form-label fw-semibold small"></label>
+                    <input asp-for="OpportunityName" class="form-control"
+                           placeholder="Brief description of this deal" />
+                    <span asp-validation-for="OpportunityName" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Stage" class="form-label fw-semibold small"></label>
+                    <select asp-for="Stage" class="form-select" id="stageSelect">
+                        @foreach (var s in new[]{"Qualification","Proposal","Negotiation","Won","Lost"})
+                        { <option value="@s">@s</option> }
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="CustomerId" class="form-label fw-semibold small"></label>
+                    <select asp-for="CustomerId" asp-items="Model.Customers" class="form-select">
+                        <option value="">-- Select Customer --</option>
+                    </select>
+                    <span asp-validation-for="CustomerId" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="AssignedTo" class="form-label fw-semibold small"></label>
+                    <select asp-for="AssignedTo" asp-items="Model.SalesUsers" class="form-select">
+                        <option value="">-- Assign To --</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Amount" class="form-label fw-semibold small"></label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input asp-for="Amount" class="form-control" type="number"
+                               min="0.01" step="0.01" placeholder="0.00" id="amountInput" />
+                    </div>
+                    <span asp-validation-for="Amount" class="text-danger small"></span>
+                    <div id="amountError" class="text-danger small d-none">
+                        Opportunity Amount must be greater than 0.
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Probability" class="form-label fw-semibold small"></label>
+                    <div class="input-group">
+                        <input asp-for="Probability" class="form-control" type="number"
+                               min="0" max="100" id="probInput" />
+                        <span class="input-group-text">%</span>
+                    </div>
+                    <span asp-validation-for="Probability" class="text-danger small"></span>
+                    <div id="probError" class="text-danger small d-none">
+                        Probability must be between 0 and 100.
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="ExpectedCloseDate" class="form-label fw-semibold small"></label>
+                    <input asp-for="ExpectedCloseDate" class="form-control" type="date"
+                           min="@DateTime.Today.ToString("yyyy-MM-dd")" id="closeDateInput" />
+                    <span asp-validation-for="ExpectedCloseDate" class="text-danger small"></span>
+                    <div id="dateError" class="text-danger small d-none">
+                        Expected Close Date cannot be in the past.
+                    </div>
+                </div>
+                <div class="col-12">
+                    <label asp-for="Notes" class="form-label fw-semibold small"></label>
+                    <textarea asp-for="Notes" class="form-control" rows="3"
+                              placeholder="Additional notes about this opportunity..."></textarea>
+                </div>
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary px-4" id="submitBtn">
+                    <i class="fas fa-save me-1"></i>Save Opportunity
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+        // ── Client-side business rules ────────────────────────────────────────
+        document.getElementById('oppForm').addEventListener('submit', function (e) {
+            let valid = true;
+            const stage    = document.getElementById('stageSelect').value;
+            const amount   = parseFloat(document.getElementById('amountInput').value);
+            const prob     = parseInt(document.getElementById('probInput').value);
+            const closeVal = document.getElementById('closeDateInput').value;
+            const today    = new Date(); today.setHours(0,0,0,0);
+
+            // Amount > 0
+            const amtErr = document.getElementById('amountError');
+            if (isNaN(amount) || amount <= 0) {
+                amtErr.classList.remove('d-none'); valid = false;
+            } else { amtErr.classList.add('d-none'); }
+
+            // Probability 0-100
+            const probErr = document.getElementById('probError');
+            if (isNaN(prob) || prob < 0 || prob > 100) {
+                probErr.classList.remove('d-none'); valid = false;
+            } else { probErr.classList.add('d-none'); }
+
+            // Close date not in past (skip for Won/Lost)
+            const dateErr = document.getElementById('dateError');
+            if (closeVal && stage !== 'Won' && stage !== 'Lost') {
+                const closeDate = new Date(closeVal); closeDate.setHours(0,0,0,0);
+                if (closeDate < today) {
+                    dateErr.classList.remove('d-none'); valid = false;
+                } else { dateErr.classList.add('d-none'); }
+            } else { dateErr.classList.add('d-none'); }
+
+            if (!valid) e.preventDefault();
+        });
+    </script>
+}

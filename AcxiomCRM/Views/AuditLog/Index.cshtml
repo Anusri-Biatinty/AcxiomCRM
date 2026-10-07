@@ -1,0 +1,128 @@
+@model IEnumerable<AuditLog>
+@{ ViewData["Title"] = "Audit Log"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="text-primary fw-bold mb-0"><i class="fas fa-shield-alt me-2"></i>Audit Log</h4>
+    <span class="badge bg-secondary">Showing latest 500 records</span>
+</div>
+
+<!-- Filters -->
+<div class="card shadow-sm border-0 mb-3">
+    <div class="card-body py-2">
+        <form asp-action="Index" method="get" class="row g-2 align-items-end">
+            <div class="col-md-2">
+                <select name="action" class="form-select form-select-sm">
+                    <option value="">All Actions</option>
+                    @foreach (var a in new[]{"Login","Logout","FailedLogin","AccountLocked","Register",
+                        "Create","Update","Delete","Deactivate","Convert",
+                        "RoleChange","PasswordReset","UnlockAccount"})
+                    {
+                        <option value="@a" selected="@(ViewBag.Action == a)">@a</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="entity" class="form-select form-select-sm">
+                    <option value="">All Entities</option>
+                    @foreach (var e in new[]{"Authentication","Customer","Lead","Opportunity","FollowUp","User"})
+                    {
+                        <option value="@e" selected="@(ViewBag.Entity == e)">@e</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="text" name="user" class="form-control form-control-sm"
+                       placeholder="Username" value="@ViewBag.User" />
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="fromDate" class="form-control form-control-sm"
+                       value="@ViewBag.FromDate" title="From date" />
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="toDate" class="form-control form-control-sm"
+                       value="@ViewBag.ToDate" title="To date" />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-sm btn-primary">
+                    <i class="fas fa-filter me-1"></i>Filter
+                </button>
+                <a asp-action="Index" class="btn btn-sm btn-outline-secondary ms-1">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 table-sm">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Entity</th>
+                        <th>Record ID</th>
+                        <th>Result</th>
+                        <th>IP Address</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var log in Model)
+                    {
+                        <tr>
+                            <td class="text-muted small text-nowrap">
+                                @log.CreatedDate.ToLocalTime().ToString("dd MMM yyyy HH:mm:ss")
+                            </td>
+                            <td class="small">@log.UserName</td>
+                            <td>
+                                @{
+                                    var ac = log.Action switch {
+                                        "Login"   => "bg-success",
+                                        "Logout"  => "bg-secondary",
+                                        "FailedLogin" or "AccountLocked" => "bg-danger",
+                                        "Create"  => "bg-primary",
+                                        "Update"  => "bg-warning",
+                                        "Delete" or "Deactivate" => "bg-danger",
+                                        "RoleChange" or "PasswordReset" => "bg-info",
+                                        _ => "bg-secondary"
+                                    };
+                                }
+                                <span class="badge @ac">@log.Action</span>
+                            </td>
+                            <td class="small">@log.EntityName</td>
+                            <td class="small text-muted">@log.RecordId</td>
+                            <td>
+                                <span class="badge @(log.Result == "Success" ? "bg-success" : "bg-danger")">
+                                    @log.Result
+                                </span>
+                            </td>
+                            <td class="small text-muted">@log.IpAddress</td>
+                            <td class="small text-muted" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                                @if (!string.IsNullOrEmpty(log.OldValue) || !string.IsNullOrEmpty(log.NewValue))
+                                {
+                                    <span title="@log.OldValue → @log.NewValue">
+                                        @log.OldValue → @log.NewValue
+                                    </span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-5">
+                                <i class="fas fa-shield-alt fa-2x mb-2 d-block opacity-25"></i>
+                                No audit records found.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer text-muted small bg-white">
+        Showing @Model.Count() audit records
+    </div>
+</div>

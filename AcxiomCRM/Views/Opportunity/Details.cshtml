@@ -1,0 +1,138 @@
+@model Opportunity
+@{ ViewData["Title"] = "Opportunity Details"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="text-primary fw-bold mb-0">
+        <i class="fas fa-handshake me-2"></i>@Model.OpportunityName
+    </h4>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.OpportunityId" class="btn btn-warning btn-sm">
+            <i class="fas fa-edit me-1"></i>Edit
+        </a>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i>Back
+        </a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white fw-semibold">
+                <i class="fas fa-info-circle me-2"></i>Opportunity Details
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless mb-0">
+                    <tr>
+                        <td class="fw-semibold text-muted small" width="35%">Customer</td>
+                        <td>@Model.Customer?.CustomerName</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-semibold text-muted small">Stage</td>
+                        <td>
+                            @{
+                                var sc = Model.Stage switch {
+                                    "Won" => "bg-success", "Lost" => "bg-danger",
+                                    "Negotiation" => "bg-warning",
+                                    "Proposal" => "bg-info", _ => "bg-primary"
+                                };
+                            }
+                            <span class="badge @sc fs-6">@Model.Stage</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="fw-semibold text-muted small">Amount</td>
+                        <td class="fs-5 fw-bold text-success">₹@Model.Amount.ToString("N2")</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-semibold text-muted small">Probability</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress flex-grow-1" style="height:10px">
+                                    <div class="progress-bar bg-primary" style="width:@Model.Probability%"></div>
+                                </div>
+                                <span class="fw-semibold">@Model.Probability%</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="fw-semibold text-muted small">Weighted Amount</td>
+                        <td class="fw-semibold text-info">₹@Model.WeightedAmount.ToString("N2")</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-semibold text-muted small">Expected Close Date</td>
+                        <td class="@(Model.ExpectedCloseDate < DateTime.Today && Model.Stage != "Won" && Model.Stage != "Lost" ? "text-danger fw-bold" : "")">
+                            @Model.ExpectedCloseDate.ToString("dd MMM yyyy")
+                            @if (Model.ExpectedCloseDate < DateTime.Today && Model.Stage != "Won" && Model.Stage != "Lost")
+                            {
+                                <span class="badge bg-danger ms-2">Overdue</span>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="fw-semibold text-muted small">Status</td>
+                        <td><span class="badge @(Model.Status == "Open" ? "bg-success" : "bg-secondary")">@Model.Status</span></td>
+                    </tr>
+                    <tr>
+                        <td class="fw-semibold text-muted small">Created</td>
+                        <td>@Model.CreatedDate.ToString("dd MMM yyyy HH:mm")</td>
+                    </tr>
+                    @if (!string.IsNullOrWhiteSpace(Model.Notes))
+                    {
+                        <tr>
+                            <td class="fw-semibold text-muted small">Notes</td>
+                            <td>@Model.Notes</td>
+                        </tr>
+                    }
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 mb-3">
+            <div class="card-header bg-success text-white fw-semibold">
+                <i class="fas fa-calculator me-2"></i>Pipeline Metrics
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <div class="text-muted small">Full Amount</div>
+                    <div class="fs-4 fw-bold text-success">₹@Model.Amount.ToString("N0")</div>
+                </div>
+                <div>
+                    <div class="text-muted small">Weighted (@Model.Probability%)</div>
+                    <div class="fs-4 fw-bold text-info">₹@Model.WeightedAmount.ToString("N0")</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-secondary text-white fw-semibold">
+                <i class="fas fa-calendar-check me-2"></i>Related Follow-Ups
+            </div>
+            <div class="card-body p-0">
+                @if (Model.FollowUps.Any())
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var f in Model.FollowUps.Take(5))
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                <div>
+                                    <div class="small fw-semibold">@f.Subject</div>
+                                    <div class="text-muted" style="font-size:0.75rem">@f.FollowUpDate.ToString("dd MMM yyyy")</div>
+                                </div>
+                                <span class="badge @(f.Status == "Completed" ? "bg-success" : f.Status == "Missed" ? "bg-danger" : "bg-primary")">
+                                    @f.Status
+                                </span>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-3 small">No follow-ups yet.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

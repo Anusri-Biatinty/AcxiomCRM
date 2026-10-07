@@ -1,0 +1,72 @@
+@model Customer
+@{ ViewData["Title"] = "Customer Details"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="text-primary fw-bold mb-0">
+        <i class="fas fa-user me-2"></i>@Model.CustomerName
+        <span class="badge bg-light text-dark border ms-2 fs-6">@Model.CustomerCode</span>
+    </h4>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.CustomerId" class="btn btn-warning btn-sm">
+            <i class="fas fa-edit me-1"></i>Edit
+        </a>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i>Back
+        </a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-primary text-white fw-semibold">
+                <i class="fas fa-info-circle me-2"></i>Contact Information
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless mb-0">
+                    <tr><td class="fw-semibold text-muted small" width="40%">Name</td>
+                        <td>@Model.CustomerName</td></tr>
+                    <tr><td class="fw-semibold text-muted small">Company</td>
+                        <td>@Model.CompanyName</td></tr>
+                    <tr><td class="fw-semibold text-muted small">Email</td>
+                        <td><a href="mailto:@Model.Email">@Model.Email</a></td></tr>
+                    <tr><td class="fw-semibold text-muted small">Phone</td>
+                        <td>@Model.Phone</td></tr>
+                    <tr><td class="fw-semibold text-muted small">Address</td>
+                        <td>@Model.Address, @Model.City, @Model.State</td></tr>
+                    <tr><td class="fw-semibold text-muted small">Status</td>
+                        <td>
+                            <span class="badge @(Model.Status == "Active" ? "bg-success" : "bg-secondary")">
+                                @Model.Status
+                            </span>
+                        </td></tr>
+                    <tr><td class="fw-semibold text-muted small">Created</td>
+                        <td>@Model.CreatedDate.ToString("dd MMM yyyy HH:mm")</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-info text-white fw-semibold">
+                <i class="fas fa-chart-line me-2"></i>Activity Summary
+            </div>
+            <div class="card-body">
+                <div class="row text-center g-3">
+                    <div class="col-4">
+                        <div class="fs-3 fw-bold text-warning">@Model.Leads.Count</div>
+                        <div class="small text-muted">Leads</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="fs-3 fw-bold text-info">@Model.Opportunities.Count</div>
+                        <div class="small text-muted">Opportunities</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="fs-3 fw-bold text-success">@Model.FollowUps.Count</div>
+                        <div class="small text-muted">Follow-Ups</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

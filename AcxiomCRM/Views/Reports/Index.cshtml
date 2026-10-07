@@ -1,0 +1,46 @@
+@{ ViewData["Title"] = "Reports"; }
+
+<div class="mb-3">
+    <h4 class="text-primary fw-bold mb-0"><i class="fas fa-chart-bar me-2"></i>Reports</h4>
+    <p class="text-muted small mt-1">Select a report to view and filter data.</p>
+</div>
+
+<div class="row g-3">
+    @{
+        var reports = new[]
+        {
+            new { Title="Customer Report",      Icon="fas fa-users",        Color="primary",   Action="CustomerReport",   Desc="Customer list with status, owner, and creation date." },
+            new { Title="Lead Report",          Icon="fas fa-filter",       Color="warning",   Action="LeadReport",       Desc="Lead source, status, priority, owner, and conversion data." },
+            new { Title="Opportunity Report",   Icon="fas fa-handshake",    Color="info",      Action="OpportunityReport",Desc="Stage, amount, probability, and expected close dates." },
+            new { Title="Pipeline Report",      Icon="fas fa-funnel-dollar",Color="success",   Action="PipelineReport",   Desc="Stage-wise and weighted pipeline value analysis." },
+            new { Title="Follow-Up Report",     Icon="fas fa-calendar",     Color="secondary", Action="FollowUpReport",   Desc="Planned, completed, missed, and overdue activities." },
+            new { Title="User Activity Report", Icon="fas fa-user-clock",   Color="dark",      Action="UserActivityReport",Desc="Action counts and last activity per user." },
+            new { Title="Audit Report",         Icon="fas fa-shield-alt",   Color="danger",    Action="AuditReport",      Desc="Security and business audit events log." },
+        };
+    }
+    @foreach (var r in reports)
+    {
+        <div class="col-md-4 col-lg-3">
+            <a asp-action="@r.Action" class="text-decoration-none">
+                <div class="card shadow-sm border-0 h-100 report-card">
+                    <div class="card-body text-center py-4">
+                        <div class="mb-3">
+                            <span class="d-inline-flex align-items-center justify-content-center
+                                         rounded-circle bg-@r.Color bg-opacity-10"
+                                  style="width:60px;height:60px">
+                                <i class="@r.Icon fa-2x text-@r.Color"></i>
+                            </span>
+                        </div>
+                        <h6 class="fw-bold mb-1">@r.Title</h6>
+                        <p class="text-muted small mb-0">@r.Desc</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    }
+</div>
+
+<style>
+    .report-card { transition: transform 0.15s, box-shadow 0.15s; cursor: pointer; }
+    .report-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.12) !important; }
+</style>
